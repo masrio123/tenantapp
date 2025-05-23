@@ -17,11 +17,11 @@ class _TenantMenuState extends State<TenantMenu> {
     super.initState();
     ApiService.loadMenus(categories: categories, menus: menus)
         .then((_) {
-          setState(() {});
-        })
+      setState(() {});
+    })
         .catchError((error) {
-          print('Error: $error');
-        });
+      print('Error: $error');
+    });
   }
 
   final formatter = NumberFormat.currency(
@@ -40,55 +40,55 @@ class _TenantMenuState extends State<TenantMenu> {
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Hapus',
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
+        ),
+        content: Text(
+          'Yakin ingin menghapus $title?',
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontSize: 18,
+            color: Colors.black,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Colors.black,
+              ),
             ),
-            title: Text(
+          ),
+          TextButton(
+            onPressed: () {
+              onConfirm();
+              Navigator.pop(context);
+            },
+            child: Text(
               'Hapus',
               style: TextStyle(
+                color: Colors.red,
                 fontFamily: 'Sen',
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.black,
+                fontSize: 16,
               ),
             ),
-            content: Text(
-              'Yakin ingin menghapus $title?',
-              style: TextStyle(
-                fontFamily: 'Sen',
-                fontSize: 18,
-                color: Colors.black,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  onConfirm();
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Hapus',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
           ),
+        ],
+      ),
     );
   }
 
@@ -98,95 +98,119 @@ class _TenantMenuState extends State<TenantMenu> {
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(
-              'Tambah Kategori',
-              style: TextStyle(
-                fontFamily: 'Sen',
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.black,
-              ),
-            ),
-            content: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: 'Nama Kategori',
-                hintStyle: TextStyle(
-                  fontFamily: 'Sen',
-                  fontSize: 18,
-                  color: Colors.grey,
-                ),
-              ),
-              style: TextStyle(
-                fontFamily: 'Sen',
-                fontSize: 18,
-                color: Colors.black,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  final name = controller.text.trim();
-                  if (name.isNotEmpty) {
-                    setState(() {
-                      categories.add(name);
-                      menus[name] = [];
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Tambah',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Color(0xFFFF7622),
-                  ),
-                ),
-              ),
-            ],
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Tambah Kategori',
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
           ),
+        ),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Nama Kategori',
+            hintStyle: TextStyle(
+              fontFamily: 'Sen',
+              fontSize: 18,
+              color: Colors.grey,
+            ),
+          ),
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontSize: 18,
+            color: Colors.black,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                setState(() {
+                  categories.add(name);
+                  menus[name] = [];
+                });
+              }
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Tambah',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Color(0xFFFF7622),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  void addMenu(String category) {
+  void addMenu() {
     final nameCtrl = TextEditingController();
     final priceCtrl = TextEditingController();
+    String? selectedCategory;
+    bool isAvailable = true;
+
+    // Dummy data kategori, ganti dengan data dari API kalau tersedia
+    final categories = ['Makanan', 'Minuman', 'Snack', 'Dessert'];
+
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(
-              'Tambah Menu',
-              style: TextStyle(
-                fontFamily: 'Sen',
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.black,
-              ),
-            ),
-            content: Column(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Tambah Menu',
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
+        ),
+        content: StatefulBuilder(
+          builder:
+              (context, setState) => SingleChildScrollView(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Kategori'),
+                  value: selectedCategory,
+                  items:
+                  categories
+                      .map(
+                        (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c),
+                    ),
+                  )
+                      .toList(),
+                  onChanged:
+                      (val) => setState(() => selectedCategory = val),
+                ),
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
@@ -194,13 +218,7 @@ class _TenantMenuState extends State<TenantMenu> {
                     labelStyle: TextStyle(
                       fontFamily: 'Sen',
                       fontSize: 18,
-                      color: Colors.grey,
                     ),
-                  ),
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 18,
-                    color: Colors.black,
                   ),
                 ),
                 TextField(
@@ -211,49 +229,70 @@ class _TenantMenuState extends State<TenantMenu> {
                     labelStyle: TextStyle(
                       fontFamily: 'Sen',
                       fontSize: 18,
-                      color: Colors.grey,
                     ),
                   ),
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tersedia',
+                      style: TextStyle(fontFamily: 'Sen'),
+                    ),
+                    Switch(
+                      value: isAvailable,
+                      onChanged:
+                          (val) => setState(() => isAvailable = val),
+                    ),
+                  ],
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  final name = nameCtrl.text;
-                  final price = int.tryParse(priceCtrl.text) ?? 0;
-                  setState(() {
-                    menus[category]!.add({'name': name, 'price': price});
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Tambah',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Color(0xFFFF7622),
-                  ),
-                ),
-              ),
-            ],
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Batal', style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = nameCtrl.text.trim();
+              final price = double.tryParse(priceCtrl.text.trim()) ?? -1;
+
+              if (selectedCategory == null || name.isEmpty || price < 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Harap lengkapi semua data dengan benar.',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              setState(() {
+                menus[selectedCategory]!.add({
+                  'name': name,
+                  'price': price,
+                  'category_id': selectedCategory,
+                  'isAvailable': isAvailable,
+                });
+              });
+
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Tambah',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Color(0xFFFF7622),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -265,89 +304,89 @@ class _TenantMenuState extends State<TenantMenu> {
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(
-              'Edit Menu',
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Edit Menu',
+          style: TextStyle(
+            fontFamily: 'Sen',
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(
+                labelText: 'Nama Menu',
+                labelStyle: TextStyle(
+                  fontFamily: 'Sen',
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
+              ),
               style: TextStyle(
                 fontFamily: 'Sen',
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+                fontSize: 18,
                 color: Colors.black,
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Nama Menu',
-                    labelStyle: TextStyle(
-                      fontFamily: 'Sen',
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
+            TextField(
+              controller: priceCtrl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Harga',
+                labelStyle: TextStyle(
+                  fontFamily: 'Sen',
+                  fontSize: 18,
+                  color: Colors.grey,
                 ),
-                TextField(
-                  controller: priceCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Harga',
-                    labelStyle: TextStyle(
-                      fontFamily: 'Sen',
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+              ),
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 18,
+                color: Colors.black,
+              ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Colors.black,
               ),
-              TextButton(
-                onPressed: () {
-                  final name = nameCtrl.text;
-                  final price = int.tryParse(priceCtrl.text) ?? 0;
-                  setState(() {
-                    menus[category]![index] = {'name': name, 'price': price};
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Simpan',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontSize: 16,
-                    color: Color(0xFFFF7622),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
+          TextButton(
+            onPressed: () {
+              final name = nameCtrl.text;
+              final price = int.tryParse(priceCtrl.text) ?? 0;
+              setState(() {
+                menus[category]![index] = {'name': name, 'price': price};
+              });
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Simpan',
+              style: TextStyle(
+                fontFamily: 'Sen',
+                fontSize: 16,
+                color: Color(0xFFFF7622),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -447,8 +486,7 @@ class _TenantMenuState extends State<TenantMenu> {
                 itemBuilder: (context, index) {
                   final category = categories[index];
                   return Card(
-                    color: Colors.grey[300],
-                    // Kategori warna grey 300
+                    color: Colors.grey[300], // Kategori warna grey 300
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -487,8 +525,8 @@ class _TenantMenuState extends State<TenantMenu> {
                           ),
                           children: [
                             ...(menus[category] ?? []).asMap().entries.map((
-                              entry,
-                            ) {
+                                entry,
+                                ) {
                               int i = entry.key;
                               var item = entry.value;
                               return ListTile(
@@ -534,7 +572,7 @@ class _TenantMenuState extends State<TenantMenu> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: IconButton(
-                                onPressed: () => addMenu(category),
+                                onPressed: () => addMenu(),
                                 icon: Icon(
                                   Icons.add_circle_outline,
                                   size: 30,
