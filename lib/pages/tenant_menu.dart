@@ -17,11 +17,11 @@ class _TenantMenuState extends State<TenantMenu> {
     super.initState();
     ApiService.loadMenus(categories: categories, menus: menus)
         .then((_) {
-      setState(() {});
-    })
+          setState(() {});
+        })
         .catchError((error) {
-      print('Error: $error');
-    });
+          print('Error: $error');
+        });
   }
 
   final formatter = NumberFormat.currency(
@@ -352,12 +352,29 @@ class _TenantMenuState extends State<TenantMenu> {
   }
 
   void deleteMenu(String category, int index) {
+    final menu = menus[category]![index];
+
     confirmDelete(
-      title: 'menu "${menus[category]![index]['name']}"',
-      onConfirm: () {
-        setState(() {
-          menus[category]!.removeAt(index);
-        });
+      title: 'menu "${menu['name']}"',
+      onConfirm: () async {
+        try {
+          final int menuId = menu['id'];
+
+          await ApiService.deleteMenuById(menuId);
+
+          setState(() {
+            menus[category]!.removeAt(index);
+          });
+
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Menu berhasil dihapus')));
+        } catch (e) {
+          print('Gagal menghapus menu: $e');
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Gagal menghapus menu')));
+        }
       },
     );
   }

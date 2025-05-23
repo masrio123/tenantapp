@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:petraporter_tenant/pages/tenant_menu.dart';
-import '../models/category.dart';
 import '../services/api_service.dart';
 
 void main() {
@@ -28,8 +27,29 @@ class _DashboardPageState extends State<DashboardPage> {
   final TextStyle commonTextStyle = TextStyle(fontFamily: 'Sen');
   bool isOnline = true;
 
-  String tenantName = "Ndokee Express";
-  String canteenLocation = "Gedung P";
+  int tenantId = 0;
+  String tenantName = "";
+  String canteenLocation = "";
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.wait([
+      ApiService.loadTenant().then((tenant) {
+        tenantName = tenant.name;
+        canteenLocation = tenant.location;
+        isOnline = tenant.isOpen;
+        tenantId = tenant.id;
+      }),
+    ])
+        .then((_) {
+      setState(() {});
+    })
+        .catchError((error) {
+      print('Error: $error');
+    });
+  }
 
   void _showEditProfileDialog() {
     TextEditingController nameController = TextEditingController(
@@ -197,10 +217,38 @@ class _DashboardPageState extends State<DashboardPage> {
                 Switch(
                   value: isOnline,
                   activeColor: Colors.green,
-                  onChanged: (val) {
-                    setState(() {
-                      isOnline = val;
-                    });
+                  onChanged: (val) async {
+                    final success = await ApiService.toggleTenantIsOpen(
+                      tenantId,
+                    );
+                    if (success) {
+                      setState(() {
+                        isOnline = val;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            val
+                                ? 'Tenant sekarang online'
+                                : 'Tenant sekarang offline',
+                            textAlign: TextAlign.center,
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Gagal mengubah status tenant',
+                            textAlign: TextAlign.center,
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                 ),
                 SizedBox(width: 23),
