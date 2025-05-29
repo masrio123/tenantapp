@@ -59,8 +59,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
+      builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -82,7 +81,6 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             SizedBox(height: 16),
-            SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: selectedLocation,
               decoration: InputDecoration(
@@ -91,10 +89,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 border: OutlineInputBorder(),
               ),
               style: TextStyle(fontFamily: 'Sen', color: Colors.black),
-              items:
-              ["Gedung P", "Gedung W", "Gedung Q", "Gedung T"].map((
-                  String location,
-                  ) {
+              items: ["Gedung P", "Gedung W", "Gedung Q", "Gedung T"]
+                  .map((String location) {
                 return DropdownMenuItem<String>(
                   value: location,
                   child: Text(
@@ -118,12 +114,35 @@ class _DashboardPageState extends State<DashboardPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFF7622),
             ),
-            onPressed: () {
-              setState(() {
-                tenantName = nameController.text;
-                canteenLocation = selectedLocation;
-              });
-              Navigator.of(context).pop();
+            onPressed: () async {
+              final updated = await ApiService.updateTenant(
+                id: tenantId,
+                name: nameController.text,
+                tenantLocation: selectedLocation,
+                isOpen: isOnline,
+              );
+
+              if (updated) {
+                setState(() {
+                  tenantName = nameController.text;
+                  canteenLocation = selectedLocation;
+                });
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Profil tenant berhasil diperbarui"),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } else {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Gagal memperbarui profil tenant"),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
             child: Text(
               "Simpan",
@@ -269,10 +288,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 },
                 icon: Icon(Icons.menu, color: Colors.white, size: 22),
-
                 label: Text(
                   "EDIT MENU",
-
                   style: commonTextStyle.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 17,
