@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:petraporter_tenant/pages/tenant_menu.dart';
+import '../models/tenant_location.dart';
 import '../services/api_service.dart';
 
 void main() {
@@ -31,9 +32,13 @@ class _DashboardPageState extends State<DashboardPage> {
   String tenantName = "";
   String canteenLocation = "";
 
+  List<TenantLocation> tenantLocations = [];
+  int? selectedLocationId;
+
   @override
   void initState() {
     super.initState();
+    fetchTenantLocations();
 
     Future.wait([
       ApiService.loadTenant().then((tenant) {
@@ -42,12 +47,21 @@ class _DashboardPageState extends State<DashboardPage> {
         isOnline = tenant.isOpen;
         tenantId = tenant.id;
       }),
-    ])
-        .then((_) {
+    ]).then((_) {
       setState(() {});
-    })
-        .catchError((error) {
+    }).catchError((error) {
       print('Error: $error');
+    });
+  }
+
+  Future<void> fetchTenantLocations() async {
+    final locations = await ApiService.getTenantLocations();
+    setState(() {
+      tenantLocations = locations;
+      selectedLocationId = locations
+          .firstWhere((loc) => loc.locationName == canteenLocation,
+          orElse: () => locations.first)
+          .id;
     });
   }
 
@@ -55,7 +69,6 @@ class _DashboardPageState extends State<DashboardPage> {
     TextEditingController nameController = TextEditingController(
       text: tenantName,
     );
-    String selectedLocation = canteenLocation;
 
     showDialog(
       context: context,
@@ -81,26 +94,27 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: selectedLocation,
+            DropdownButtonFormField<int>(
+              value: selectedLocationId,
               decoration: InputDecoration(
                 labelText: "Lokasi Kantin",
                 labelStyle: TextStyle(fontFamily: 'Sen'),
                 border: OutlineInputBorder(),
               ),
               style: TextStyle(fontFamily: 'Sen', color: Colors.black),
-              items: ["Gedung P", "Gedung W", "Gedung Q", "Gedung T"]
-                  .map((String location) {
-                return DropdownMenuItem<String>(
-                  value: location,
+              items: tenantLocations.map((TenantLocation location) {
+                return DropdownMenuItem<int>(
+                  value: location.id,
                   child: Text(
-                    location,
+                    location.locationName,
                     style: TextStyle(fontFamily: 'Sen'),
                   ),
                 );
               }).toList(),
               onChanged: (value) {
-                selectedLocation = value!;
+                setState(() {
+                  selectedLocationId = value!;
+                });
               },
             ),
           ],
@@ -118,14 +132,18 @@ class _DashboardPageState extends State<DashboardPage> {
               final updated = await ApiService.updateTenant(
                 id: tenantId,
                 name: nameController.text,
-                tenantLocation: selectedLocation,
+                tenantLocationId: selectedLocationId!,
                 isOpen: isOnline,
               );
 
               if (updated) {
                 setState(() {
                   tenantName = nameController.text;
-                  canteenLocation = selectedLocation;
+                  canteenLocation = tenantLocations
+                      .firstWhere(
+                          (loc) => loc.id == selectedLocationId,
+                      orElse: () => tenantLocations.first)
+                      .locationName;
                 });
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -237,9 +255,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   value: isOnline,
                   activeColor: Colors.green,
                   onChanged: (val) async {
-                    final success = await ApiService.toggleTenantIsOpen(
-                      tenantId,
-                    );
+                    final success = await ApiService.toggleTenantIsOpen(tenantId);
                     if (success) {
                       setState(() {
                         isOnline = val;

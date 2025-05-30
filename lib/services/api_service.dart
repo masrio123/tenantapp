@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../constant/constant.dart';
 import '../models/tenant.dart';
 import '../models/categories.dart';
+import '../models/tenant_location.dart';
 
 class ApiService {
   static Future<void> loadMenus({
@@ -196,18 +197,16 @@ class ApiService {
   static Future<bool> updateTenant({
     required int id,
     required String name,
-    required String tenantLocation,
+    required int tenantLocationId,
     required bool isOpen,
   }) async {
     try {
       final response = await http.put(
         Uri.parse('$baseURL/tenants/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
-          'tenant_location': tenantLocation,
+          'tenant_location_id': tenantLocationId,
           'is_open': isOpen,
         }),
       );
@@ -224,20 +223,20 @@ class ApiService {
     }
   }
 
+  static Future<List<TenantLocation>> getTenantLocations() async {
+    try {
+      final response = await http.get(Uri.parse('$baseURL/tenant-locations'));
 
-
-  static int _getLocationIdFromName(String name) {
-    switch (name) {
-      case "Gedung P":
-        return 1;
-      case "Gedung W":
-        return 2;
-      case "Gedung Q":
-        return 3;
-      case "Gedung T":
-        return 4;
-      default:
-        return 1;
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        return data.map((e) => TenantLocation.fromJson(e)).toList();
+      } else {
+        print("Gagal mengambil data lokasi: ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      print("Exception saat ambil lokasi tenant: $e");
+      return [];
     }
   }
 }
