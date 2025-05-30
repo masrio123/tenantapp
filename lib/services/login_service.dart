@@ -20,7 +20,8 @@ class AuthService {
       if (data['user']['role'] != 'tenant') {
         return {
           'success': false,
-          'message': 'akun Anda tidak memiliki role tenant',
+          'message':
+              'akun tidak memiliki role tenant silahkan login menggunakan akun tenant Anda',
         };
       }
 
