@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../pages/main_page.dart';
+import '../services/login_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +12,43 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
 
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void handleLogin() async {
+    final auth = AuthService();
+    final result = await auth.login(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
+
+    if (result['success']) {
+      final user = result['user'];
+      print('Login berhasil! Selamat datang, ${user['nama']}');
+
+      // Navigasi ke MainPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainPage()),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Login Gagal'),
+              content: Text(result['message']),
+              actions: [
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,9 +59,9 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(25.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 10), // jarak dari status bar
+                const SizedBox(height: 10),
+
                 // Logo
                 Container(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -33,9 +70,6 @@ class _LoginPageState extends State<LoginPage> {
                   child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                 ),
 
-                const SizedBox(height: 10),
-
-                // Merchant App Title
                 const Text(
                   'MERCHANT APP',
                   style: TextStyle(
@@ -47,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 30),
 
-                // Container putih untuk form login
+                // Login Form Container
                 Container(
                   padding: const EdgeInsets.all(25),
                   decoration: BoxDecoration(
@@ -66,6 +100,8 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       // Email Field
                       TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
                         style: const TextStyle(fontFamily: 'Sen'),
                         decoration: InputDecoration(
                           labelText: 'Email',
@@ -91,6 +127,7 @@ class _LoginPageState extends State<LoginPage> {
 
                       // Password Field
                       TextField(
+                        controller: passwordController,
                         obscureText: _obscureText,
                         style: const TextStyle(fontFamily: 'Sen'),
                         decoration: InputDecoration(
@@ -131,17 +168,8 @@ class _LoginPageState extends State<LoginPage> {
                       // Login Button
                       SizedBox(
                         width: double.infinity,
-
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Implement login functionality here
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MainPage(),
-                              ),
-                            );
-                          },
+                          onPressed: handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF7622),
                             foregroundColor: Colors.white,
