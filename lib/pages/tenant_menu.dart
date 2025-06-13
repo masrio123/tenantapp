@@ -283,8 +283,14 @@ class _TenantMenuState extends State<TenantMenu> {
                         isAvailable: isAvailable,
                       );
 
-                      Navigator.pop(rootContext); // tutup loading
-                      Navigator.pop(dialogContext); // tutup tambah menu dialog
+                      Navigator.of(
+                        rootContext,
+                        rootNavigator: true,
+                      ).pop(); // tutup loading
+                      Navigator.of(
+                        dialogContext,
+                        rootNavigator: true,
+                      ).pop(); // tutup modal
 
                       setState(() {
                         final categoryName = getCategoryNameById(
@@ -307,7 +313,10 @@ class _TenantMenuState extends State<TenantMenu> {
                         SnackBar(content: Text('Menu berhasil ditambahkan')),
                       );
                     } catch (e) {
-                      Navigator.pop(rootContext); // tutup loading
+                      Navigator.of(
+                        rootContext,
+                        rootNavigator: true,
+                      ).pop(); // tutup loading
                       ScaffoldMessenger.of(
                         rootContext,
                       ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
@@ -322,8 +331,8 @@ class _TenantMenuState extends State<TenantMenu> {
       },
     );
 
-    nameCtrl.dispose();
-    priceCtrl.dispose();
+    // nameCtrl.dispose();
+    // priceCtrl.dispose();
   }
 
   void editMenu(String category, int index) {

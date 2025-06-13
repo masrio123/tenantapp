@@ -137,6 +137,8 @@ class ApiService {
     final token = await getToken();
     final tenant_id = await getTenantId();
 
+    print("category $categoryId");
+
     final response = await http.post(
       url,
       headers: {
