@@ -25,8 +25,11 @@ class ApiService {
       final token = await getToken();
       final tenant_id = await getTenantId();
 
+      print("tenant id $tenant_id");
+      print('$baseURL/products?tenant_id=$tenant_id');
+
       final response = await http.get(
-        Uri.parse('$baseURL/products/$tenant_id'),
+        Uri.parse('$baseURL/products?tenant_id=$tenant_id'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -83,7 +86,7 @@ class ApiService {
     final token = await getToken();
 
     final response = await http.delete(
-      Uri.parse('$baseURL/products$id/delete'),
+      Uri.parse('$baseURL/products/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -189,15 +192,15 @@ class ApiService {
     required int id,
     required String name,
     required double price,
-    required String categoryId,
-    required String tenantId,
     required bool isAvailable,
   }) async {
-    final url = Uri.parse('$baseURL/products/$id/edit');
+    final url = Uri.parse('$baseURL/products/$id');
     final token = await getToken();
 
+    print("id $id, name $name, price $price, isAvailabel $isAvailable");
+
     try {
-      final response = await http.patch(
+      final response = await http.put(
         url,
         headers: {
           'Authorization': 'Bearer $token',
@@ -207,7 +210,6 @@ class ApiService {
         body: jsonEncode({
           'name': name,
           'price': price,
-          'category_id': categoryId,
           'isAvailable': isAvailable,
         }),
       );
