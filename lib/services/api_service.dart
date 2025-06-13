@@ -4,6 +4,7 @@ import '../constant/constant.dart';
 import '../models/tenant.dart';
 import '../models/categories.dart';
 import '../models/tenant_location.dart';
+import '../models/order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
@@ -315,6 +316,27 @@ class ApiService {
     } catch (e) {
       print("Exception saat ambil lokasi tenant: $e");
       return [];
+    }
+  }
+
+  static Future<List<OrderNotification>> fetchOrderNotifications() async {
+    final token = await getToken(); // pastikan getToken() tersedia
+    final tenantId = await getTenantId(); // pastikan getTenantId() tersedia
+
+    final url = Uri.parse('$baseURL/tenants/$tenantId/order-notifications');
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      final data = body['data'] as List;
+
+      return data.map((json) => OrderNotification.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch order notifications');
     }
   }
 }

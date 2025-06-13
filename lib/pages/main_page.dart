@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:petraporter_tenant/pages/tenant_menu.dart';
 import '../models/tenant_location.dart';
 import '../services/api_service.dart';
+import '../models/order.dart';
+import 'dart:async';
 
 void main() {
   runApp(MainPage());
@@ -35,10 +37,15 @@ class _DashboardPageState extends State<DashboardPage> {
   List<TenantLocation> tenantLocations = [];
   int? selectedLocationId;
 
+  late Future<List<OrderNotification>> _orderFuture;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
     fetchTenantLocations();
+
+    _orderFuture = ApiService.fetchOrderNotifications(); // pertama kali
 
     Future.wait([
           ApiService.loadTenant().then((tenant) {
@@ -54,6 +61,13 @@ class _DashboardPageState extends State<DashboardPage> {
         .catchError((error) {
           print('Error: $error');
         });
+
+    // polling setiap 10 detik
+    _timer = Timer.periodic(Duration(seconds: 10), (_) {
+      setState(() {
+        _orderFuture = ApiService.fetchOrderNotifications();
+      });
+    });
   }
 
   Future<void> fetchTenantLocations() async {
@@ -327,18 +341,63 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 26, vertical: 27),
-                padding: EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "NO INCOMING ORDER",
-                  style: commonTextStyle.copyWith(color: Colors.grey[600]),
-                ),
+              child: FutureBuilder<List<OrderNotification>>(
+                future: _orderFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Gagal memuat order.',
+                        style: commonTextStyle.copyWith(color: Colors.red),
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Container(
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 27,
+                      ),
+                      padding: EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "NO INCOMING ORDER",
+                        style: commonTextStyle.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final orders = snapshot.data!;
+
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order = orders[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(order.customerName),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Status: ${order.orderStatus}"),
+                              Text("Lokasi: ${order.tenantLocationName}"),
+                              Text("Waktu: ${order.createdAt}"),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
