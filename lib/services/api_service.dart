@@ -4,14 +4,38 @@ import '../constant/constant.dart';
 import '../models/tenant.dart';
 import '../models/categories.dart';
 import '../models/tenant_location.dart';
+import '../models/order.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  static Future<String?> getTenantId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('tenant_id');
+  }
+
   static Future<void> loadMenus({
     required List<String> categories,
     required Map<String, List<Map<String, dynamic>>> menus,
   }) async {
     try {
-      final response = await http.get(Uri.parse('$baseURL/products/5'));
+      final token = await getToken();
+      final tenant_id = await getTenantId();
+
+      print("tenant id $tenant_id");
+      print('$baseURL/products?tenant_id=$tenant_id');
+
+      final response = await http.get(
+        Uri.parse('$baseURL/products?tenant_id=$tenant_id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -45,7 +69,13 @@ class ApiService {
   }
 
   static Future<Tenant> loadTenant() async {
-    final response = await http.get(Uri.parse('$baseURL/tenants/5'));
+    final token = await getToken();
+    final tenant_id = await getTenantId();
+
+    final response = await http.get(
+      Uri.parse('$baseURL/tenants/$tenant_id'),
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
     if (response.statusCode == 200) {
       return Tenant.fromJson(jsonDecode(response.body));
     } else {
@@ -53,10 +83,23 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   static Future<void> deleteMenuById(int productId) async {
     final response = await http.delete(
       Uri.parse('$baseURL/products/$productId'),
       headers: {'Content-Type': 'application/json'},
+=======
+  static Future<void> deleteMenuById(int id) async {
+    final token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseURL/products/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+>>>>>>> 2aba4992444f3ff38950aef5765d9909deae8e4b
     );
 
     // Coba decode body response (asumsi backend selalu kirim JSON)
@@ -80,9 +123,19 @@ class ApiService {
   }
 
   static Future<bool> toggleTenantIsOpen(int tenantId) async {
-    final url = Uri.parse('$baseURL/tenants/$tenantId/toggle-is-open');
+    final token = await getToken();
+    final tenant_id = await getTenantId();
+
+    final url = Uri.parse('$baseURL/tenants/$tenant_id/toggle-is-open');
     try {
-      final response = await http.patch(url);
+      final response = await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
       print(response.statusCode);
       if (response.statusCode == 200) {
         return true;
@@ -104,18 +157,23 @@ class ApiService {
     required bool isAvailable,
   }) async {
     final url = Uri.parse('$baseURL/products/store');
+    final token = await getToken();
+    final tenant_id = await getTenantId();
+
+    print("category $categoryId");
 
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode({
         'name': name,
         'price': price,
         'category_id': categoryId,
-        'tenant_id': tenantId,
+        'tenant_id': tenant_id,
         'isAvailable': isAvailable,
       }),
     );
@@ -129,10 +187,18 @@ class ApiService {
   }
 
   static Future<List<Category>> getCategories() async {
-    final url = Uri.parse(
-      '$baseURL/categories',
-    ); // Ganti sesuai endpoint yang benar
-    final response = await http.get(url);
+    final url = Uri.parse('$baseURL/categories');
+
+    final token = await getToken();
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       final body = json.decode(response.body);
@@ -150,6 +216,7 @@ class ApiService {
   static Future<void> updateMenu({
     required int id,
     required String name,
+<<<<<<< HEAD
     required int price,
     required bool isAvailable,
   }) async {
@@ -175,6 +242,68 @@ class ApiService {
       throw Exception(
         'Gagal mengupdate menu: ${response.statusCode} - ${response.body}',
       );
+=======
+    required double price,
+    required bool isAvailable,
+  }) async {
+    final url = Uri.parse('$baseURL/products/$id');
+    final token = await getToken();
+
+    print("id $id, name $name, price $price, isAvailabel $isAvailable");
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'price': price,
+          'isAvailable': isAvailable,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Menu berhasil diupdate: ${data['data']}');
+      } else {
+        print('Gagal mengupdate menu: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saat update menu: $e');
+    }
+  }
+
+  static Future<void> toggleMenuAvailability({
+    required int id,
+    required bool isAvailable,
+  }) async {
+    final url = Uri.parse('$baseURL/products/$id/toggle-availability');
+
+    final token = await getToken();
+
+    try {
+      final response = await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'isAvailable': isAvailable}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Availability berhasil diubah.');
+      } else {
+        print('Gagal mengubah availability: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saat toggle availability: $e');
+>>>>>>> 2aba4992444f3ff38950aef5765d9909deae8e4b
     }
   }
 
@@ -185,9 +314,16 @@ class ApiService {
     required bool isOpen,
   }) async {
     try {
+      final token = await getToken();
+      final tenant_id = await getTenantId();
+
       final response = await http.put(
-        Uri.parse('$baseURL/tenants/$id'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseURL/tenants/$tenant_id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({
           'name': name,
           'tenant_location_id': tenantLocationId,
@@ -209,7 +345,16 @@ class ApiService {
 
   static Future<List<TenantLocation>> getTenantLocations() async {
     try {
-      final response = await http.get(Uri.parse('$baseURL/tenant-locations'));
+      final token = await getToken();
+
+      final response = await http.get(
+        Uri.parse('$baseURL/tenant-locations'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
 
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
@@ -221,6 +366,27 @@ class ApiService {
     } catch (e) {
       print("Exception saat ambil lokasi tenant: $e");
       return [];
+    }
+  }
+
+  static Future<List<OrderNotification>> fetchOrderNotifications() async {
+    final token = await getToken(); // pastikan getToken() tersedia
+    final tenantId = await getTenantId(); // pastikan getTenantId() tersedia
+
+    final url = Uri.parse('$baseURL/tenants/$tenantId/order-notifications');
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      final data = body['data'] as List;
+
+      return data.map((json) => OrderNotification.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch order notifications');
     }
   }
 }

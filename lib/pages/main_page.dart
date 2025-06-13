@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:petraporter_tenant/pages/tenant_menu.dart';
 import '../models/tenant_location.dart';
 import '../services/api_service.dart';
+import '../models/order.dart';
+import 'dart:async';
 
 void main() {
   runApp(MainPage());
@@ -35,22 +37,36 @@ class _DashboardPageState extends State<DashboardPage> {
   List<TenantLocation> tenantLocations = [];
   int? selectedLocationId;
 
+  late Future<List<OrderNotification>> _orderFuture;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
     fetchTenantLocations();
 
+    _orderFuture = ApiService.fetchOrderNotifications(); // pertama kali
+
     Future.wait([
-      ApiService.loadTenant().then((tenant) {
-        tenantName = tenant.name;
-        canteenLocation = tenant.location;
-        isOnline = tenant.isOpen;
-        tenantId = tenant.id;
-      }),
-    ]).then((_) {
-      setState(() {});
-    }).catchError((error) {
-      print('Error: $error');
+          ApiService.loadTenant().then((tenant) {
+            tenantName = tenant.name;
+            canteenLocation = tenant.location;
+            isOnline = tenant.isOpen;
+            tenantId = tenant.id;
+          }),
+        ])
+        .then((_) {
+          setState(() {});
+        })
+        .catchError((error) {
+          print('Error: $error');
+        });
+
+    // polling setiap 10 detik
+    _timer = Timer.periodic(Duration(seconds: 10), (_) {
+      setState(() {
+        _orderFuture = ApiService.fetchOrderNotifications();
+      });
     });
   }
 
@@ -58,10 +74,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final locations = await ApiService.getTenantLocations();
     setState(() {
       tenantLocations = locations;
-      selectedLocationId = locations
-          .firstWhere((loc) => loc.locationName == canteenLocation,
-          orElse: () => locations.first)
-          .id;
+      selectedLocationId =
+          locations
+              .firstWhere(
+                (loc) => loc.locationName == canteenLocation,
+                orElse: () => locations.first,
+              )
+              .id;
     });
   }
 
@@ -72,103 +91,107 @@ class _DashboardPageState extends State<DashboardPage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          "Edit Profil",
-          style: TextStyle(fontFamily: 'Sen', fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: nameController,
-              style: TextStyle(fontFamily: 'Sen'),
-              decoration: InputDecoration(
-                labelText: "Nama Tenant",
-                labelStyle: TextStyle(fontFamily: 'Sen'),
-                border: OutlineInputBorder(),
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              value: selectedLocationId,
-              decoration: InputDecoration(
-                labelText: "Lokasi Kantin",
-                labelStyle: TextStyle(fontFamily: 'Sen'),
-                border: OutlineInputBorder(),
-              ),
-              style: TextStyle(fontFamily: 'Sen', color: Colors.black),
-              items: tenantLocations.map((TenantLocation location) {
-                return DropdownMenuItem<int>(
-                  value: location.id,
-                  child: Text(
-                    location.locationName,
-                    style: TextStyle(fontFamily: 'Sen'),
+            title: Text(
+              "Edit Profil",
+              style: TextStyle(fontFamily: 'Sen', fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  style: TextStyle(fontFamily: 'Sen'),
+                  decoration: InputDecoration(
+                    labelText: "Nama Tenant",
+                    labelStyle: TextStyle(fontFamily: 'Sen'),
+                    border: OutlineInputBorder(),
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedLocationId = value!;
-                });
-              },
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<int>(
+                  value: selectedLocationId,
+                  decoration: InputDecoration(
+                    labelText: "Lokasi Kantin",
+                    labelStyle: TextStyle(fontFamily: 'Sen'),
+                    border: OutlineInputBorder(),
+                  ),
+                  style: TextStyle(fontFamily: 'Sen', color: Colors.black),
+                  items:
+                      tenantLocations.map((TenantLocation location) {
+                        return DropdownMenuItem<int>(
+                          value: location.id,
+                          child: Text(
+                            location.locationName,
+                            style: TextStyle(fontFamily: 'Sen'),
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedLocationId = value!;
+                    });
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            child: Text("Batal", style: TextStyle(fontFamily: 'Sen')),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFF7622),
-            ),
-            onPressed: () async {
-              final updated = await ApiService.updateTenant(
-                id: tenantId,
-                name: nameController.text,
-                tenantLocationId: selectedLocationId!,
-                isOpen: isOnline,
-              );
+            actions: [
+              TextButton(
+                child: Text("Batal", style: TextStyle(fontFamily: 'Sen')),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFF7622),
+                ),
+                onPressed: () async {
+                  final updated = await ApiService.updateTenant(
+                    id: tenantId,
+                    name: nameController.text,
+                    tenantLocationId: selectedLocationId!,
+                    isOpen: isOnline,
+                  );
 
-              if (updated) {
-                setState(() {
-                  tenantName = nameController.text;
-                  canteenLocation = tenantLocations
-                      .firstWhere(
-                          (loc) => loc.id == selectedLocationId,
-                      orElse: () => tenantLocations.first)
-                      .locationName;
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Profil tenant berhasil diperbarui"),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } else {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Gagal memperbarui profil tenant"),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            child: Text(
-              "Simpan",
-              style: TextStyle(fontFamily: 'Sen', color: Colors.white),
-            ),
+                  if (updated) {
+                    setState(() {
+                      tenantName = nameController.text;
+                      canteenLocation =
+                          tenantLocations
+                              .firstWhere(
+                                (loc) => loc.id == selectedLocationId,
+                                orElse: () => tenantLocations.first,
+                              )
+                              .locationName;
+                    });
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Profil tenant berhasil diperbarui"),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } else {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Gagal memperbarui profil tenant"),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                child: Text(
+                  "Simpan",
+                  style: TextStyle(fontFamily: 'Sen', color: Colors.white),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -255,7 +278,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   value: isOnline,
                   activeColor: Colors.green,
                   onChanged: (val) async {
-                    final success = await ApiService.toggleTenantIsOpen(tenantId);
+                    final success = await ApiService.toggleTenantIsOpen(
+                      tenantId,
+                    );
                     if (success) {
                       setState(() {
                         isOnline = val;
@@ -316,18 +341,63 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 26, vertical: 27),
-                padding: EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "NO INCOMING ORDER",
-                  style: commonTextStyle.copyWith(color: Colors.grey[600]),
-                ),
+              child: FutureBuilder<List<OrderNotification>>(
+                future: _orderFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Gagal memuat order.',
+                        style: commonTextStyle.copyWith(color: Colors.red),
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Container(
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 27,
+                      ),
+                      padding: EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "NO INCOMING ORDER",
+                        style: commonTextStyle.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final orders = snapshot.data!;
+
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order = orders[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(order.customerName),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Status: ${order.orderStatus}"),
+                              Text("Lokasi: ${order.tenantLocationName}"),
+                              Text("Waktu: ${order.createdAt}"),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
