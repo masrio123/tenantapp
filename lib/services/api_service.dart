@@ -83,29 +83,20 @@ class ApiService {
     }
   }
 
-  static Future<void> deleteMenuById(int productId) async {
+  static Future<void> deleteMenuById(int id) async {
+    final token = await getToken();
+
     final response = await http.delete(
-      Uri.parse('$baseURL/products/$productId'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('$baseURL/products/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
     );
 
-    // Coba decode body response (asumsi backend selalu kirim JSON)
-    Map<String, dynamic>? responseData;
-    try {
-      responseData = jsonDecode(response.body);
-    } catch (_) {
-      responseData = null;
-    }
-
-    if (response.statusCode == 200 || response.statusCode == 204) {
-      // Berhasil hapus
-      return;
-    } else if (response.statusCode == 404) {
-      // Produk tidak ditemukan
-      throw Exception(responseData?['message'] ?? 'Produk tidak ditemukan');
-    } else {
-      // Error lain
-      throw Exception(responseData?['message'] ?? 'Gagal menghapus menu');
+    if (response.statusCode != 200) {
+      throw Exception('Gagal menghapus menu');
     }
   }
 
@@ -203,31 +194,66 @@ class ApiService {
   static Future<void> updateMenu({
     required int id,
     required String name,
-    required int price,
+    required double price,
     required bool isAvailable,
   }) async {
     final url = Uri.parse('$baseURL/products/$id');
+    final token = await getToken();
 
-    final body = jsonEncode({
-      'name': name,
-      'price': price,
-      'isAvailable': isAvailable ? 1 : 0,
-    });
-    final response = await http.put(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: body,
-    );
+    print("id $id, name $name, price $price, isAvailabel $isAvailable");
 
-    if (response.statusCode == 200) {
-      print('Menu berhasil diupdate: ${response.body}');
-    } else {
-      throw Exception(
-        'Gagal mengupdate menu: ${response.statusCode} - ${response.body}',
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'price': price,
+          'isAvailable': isAvailable,
+        }),
       );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Menu berhasil diupdate: ${data['data']}');
+      } else {
+        print('Gagal mengupdate menu: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saat update menu: $e');
+    }
+  }
+
+  static Future<void> toggleMenuAvailability({
+    required int id,
+    required bool isAvailable,
+  }) async {
+    final url = Uri.parse('$baseURL/products/$id/toggle-availability');
+
+    final token = await getToken();
+
+    try {
+      final response = await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'isAvailable': isAvailable}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Availability berhasil diubah.');
+      } else {
+        print('Gagal mengubah availability: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saat toggle availability: $e');
     }
   }
 
