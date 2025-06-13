@@ -164,7 +164,6 @@ class _TenantMenuState extends State<TenantMenu> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-<<<<<<< HEAD
                         DropdownButtonFormField<String>(
                           decoration: InputDecoration(labelText: 'Kategori'),
                           value: selectedCategory,
@@ -206,12 +205,6 @@ class _TenantMenuState extends State<TenantMenu> {
                               fontSize: 18,
                             ),
                           ),
-=======
-                        Text('Tersedia'),
-                        Switch(
-                          value: isAvailable,
-                          onChanged: (val) => setState(() => isAvailable = val),
->>>>>>> 2aba4992444f3ff38950aef5765d9909deae8e4b
                         ),
                       ],
                     ),
@@ -315,7 +308,6 @@ class _TenantMenuState extends State<TenantMenu> {
     showDialog(
       context: context,
       builder: (context) {
-<<<<<<< HEAD
         bool isAvailable;
         final rawAvailable = item['isAvailable'];
 
@@ -463,162 +455,6 @@ class _TenantMenuState extends State<TenantMenu> {
               ],
             );
           },
-=======
-        return StatefulBuilder(
-          builder:
-              (context, setState) => AlertDialog(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                title: Text(
-                  'Edit Menu',
-                  style: TextStyle(
-                    fontFamily: 'Sen',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.black,
-                  ),
-                ),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: nameCtrl,
-                        decoration: InputDecoration(
-                          labelText: 'Nama Menu',
-                          labelStyle: TextStyle(
-                            fontFamily: 'Sen',
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        style: TextStyle(
-                          fontFamily: 'Sen',
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      TextField(
-                        controller: priceCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Harga',
-                          labelStyle: TextStyle(
-                            fontFamily: 'Sen',
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        style: TextStyle(
-                          fontFamily: 'Sen',
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Tersedia', style: TextStyle(fontFamily: 'Sen')),
-                          Switch(
-                            value: isAvailable,
-                            onChanged:
-                                (val) => setState(() => isAvailable = val),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Batal',
-                      style: TextStyle(
-                        fontFamily: 'Sen',
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final name = nameCtrl.text.trim();
-                      final price = double.tryParse(priceCtrl.text) ?? -1;
-
-                      if (name.isEmpty || price < 0) {
-                        Navigator.pop(context); // Tutup dialog sebelum snackbar
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Harap lengkapi semua data dengan benar.',
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      // Tampilkan loading dialog
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        useRootNavigator:
-                            true, // penting untuk menghindari context error
-                        builder:
-                            (_) => Center(child: CircularProgressIndicator()),
-                      );
-
-                      try {
-                        await ApiService.updateMenu(
-                          id: item['id'],
-                          name: name,
-                          price: price,
-                          isAvailable: isAvailable,
-                        );
-
-                        // Update state menu
-                        setState(() {
-                          menus[category]![index] = {
-                            ...item,
-                            'name': name,
-                            'price': price,
-                            'isAvailable': isAvailable,
-                          };
-                        });
-
-                        Navigator.pop(context); // Tutup loading
-                        Navigator.pop(context); // Tutup dialog edit
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(content: Text('Menu berhasil diupdate')),
-                        );
-                      } catch (e) {
-                        Navigator.pop(context); // Tutup loading
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(content: Text('Gagal mengupdate menu: $e')),
-                        );
-                      } finally {
-                        // nameCtrl.dispose();
-                        // priceCtrl.dispose();
-                      }
-                    },
-                    child: Text(
-                      'Simpan',
-                      style: TextStyle(
-                        fontFamily: 'Sen',
-                        fontSize: 16,
-                        color: Color(0xFFFF7622),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
->>>>>>> 2aba4992444f3ff38950aef5765d9909deae8e4b
         );
       },
     );
