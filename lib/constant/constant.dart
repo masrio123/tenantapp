@@ -1,2 +1,2 @@
 const String baseURL =
-    'https://rats-diagram-meat-diagnosis.trycloudflare.com/api';
+    'https://questionnaire-bridal-setting-layout.trycloudflare.com/api';
