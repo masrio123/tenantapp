@@ -393,6 +393,51 @@ class _DashboardPageState extends State<DashboardPage> {
                               Text("Waktu: ${order.createdAt}"),
                             ],
                           ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text(
+                                      "Detail Order - ${order.customerName}",
+                                    ),
+                                    content: SizedBox(
+                                      width: double.maxFinite,
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: order.items.length,
+                                        itemBuilder: (context, i) {
+                                          final item = order.items[i];
+                                          return ListTile(
+                                            dense: true,
+                                            title: Text(item.productName),
+                                            subtitle: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text("Qty: ${item.quantity}"),
+                                                Text(
+                                                  "Harga: Rp ${item.price.toStringAsFixed(0)}",
+                                                ),
+                                                Text(
+                                                  "Total: Rp ${item.totalPrice.toStringAsFixed(0)}",
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(context).pop(),
+                                        child: Text("Tutup"),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          },
                         ),
                       );
                     },
