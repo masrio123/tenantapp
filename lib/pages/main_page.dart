@@ -4,6 +4,8 @@ import '../models/tenant_location.dart';
 import '../services/api_service.dart';
 import '../models/order.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:petraporter_tenant/login/login.dart';
 
 void main() {
   runApp(MainPage());
@@ -195,6 +197,18 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (!mounted) return; // Pastikan widget masih hidup
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,7 +216,19 @@ class _DashboardPageState extends State<DashboardPage> {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(top: 10, right: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.black),
+                    onPressed: _logout,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -390,6 +416,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Text("Status: ${order.orderStatus}"),
                               Text("Lokasi: ${order.tenantLocationName}"),
+                              Text("Porter: ${order.porterName}"),
                               Text("Waktu: ${order.createdAt}"),
                             ],
                           ),
