@@ -24,6 +24,7 @@ class OrderItem {
 class OrderNotification {
   final int orderId;
   final String customerName;
+  final String porterName;
   final String orderStatus;
   final String tenantLocationName;
   final String createdAt;
@@ -32,6 +33,7 @@ class OrderNotification {
   OrderNotification({
     required this.orderId,
     required this.customerName,
+    required this.porterName,
     required this.orderStatus,
     required this.tenantLocationName,
     required this.createdAt,
@@ -42,6 +44,7 @@ class OrderNotification {
     return OrderNotification(
       orderId: json['order_id'],
       customerName: json['customer_name'],
+      porterName: json['porter_name'],
       orderStatus: json['order_status'],
       tenantLocationName: json['tenant_location_name'],
       createdAt: json['created_at'],

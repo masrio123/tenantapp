@@ -416,6 +416,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Text("Status: ${order.orderStatus}"),
                               Text("Lokasi: ${order.tenantLocationName}"),
+                              Text("Porter: ${order.porterName}"),
                               Text("Waktu: ${order.createdAt}"),
                             ],
                           ),
