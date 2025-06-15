@@ -419,9 +419,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 Text(
                                                   "Harga: Rp ${item.price.toStringAsFixed(0)}",
                                                 ),
-                                                Text(
-                                                  "Total: Rp ${item.totalPrice.toStringAsFixed(0)}",
-                                                ),
                                               ],
                                             ),
                                           );
