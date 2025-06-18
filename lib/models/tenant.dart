@@ -11,26 +11,26 @@ class Tenant {
     required this.isOpen,
   });
 
-  factory Tenant.fromJson(Map<String, dynamic> json) {
+  Tenant copyWith({int? id, String? name, String? location, bool? isOpen}) {
     return Tenant(
-      id: json['id'],
-      name: json['name'],
-      location: json['location'],
-      isOpen: json['isOpen'],
+      id: id ?? this.id,
+      name: name ?? this.name,
+      location: location ?? this.location,
+      isOpen: isOpen ?? this.isOpen,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'location': location,
-      'isOpen': isOpen,
-    };
-  }
+  factory Tenant.fromJson(Map<String, dynamic> json) {
+    final data =
+        json.containsKey('data') && json['data'] is Map
+            ? json['data'] as Map<String, dynamic>
+            : json;
 
-  @override
-  String toString() {
-    return 'Tenant(id: $id, name: $name, location: $location, isOpen: $isOpen)';
+    return Tenant(
+      id: data['id'],
+      name: data['name'],
+      location: data['location'] ?? '',
+      isOpen: data['isOpen'] == 1 || data['isOpen'] == true,
+    );
   }
 }
