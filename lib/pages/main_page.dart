@@ -369,6 +369,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  // --- FUNGSI INI DIMODIFIKASI ---
   void _showOrderDetailDialog(OrderNotification order) {
     final double totalPrice = order.items.fold(
       0.0,
@@ -397,11 +398,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       'Porter',
                       order.porterName ?? 'Belum ada',
                     ),
-                    _buildDetailRow(
-                      Icons.location_on_outlined,
-                      'Lokasi',
-                      order.tenantLocationName,
-                    ),
                     const Divider(height: 30, thickness: 1),
                     const Text(
                       'Item Pesanan:',
@@ -411,6 +407,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // --- PERUBAHAN DI SINI ---
+                    // ListView.builder dimodifikasi untuk menampilkan catatan
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -419,23 +417,46 @@ class _DashboardPageState extends State<DashboardPage> {
                         final item = order.items[i];
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
+                          // Dibungkus dengan Column agar catatan bisa di bawah
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '${item.quantity}x',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${item.quantity}x',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: Text(item.productName)),
+                                  Text(_priceFormatter.format(item.price)),
+                                ],
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(child: Text(item.productName)),
-                              Text(_priceFormatter.format(item.price)),
+                              // Menampilkan catatan jika ada dan tidak kosong
+                              if (item.notes != null && item.notes!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 4,
+                                    left: 26,
+                                  ),
+                                  child: Text(
+                                    'Catatan: "${item.notes!}"',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         );
                       },
                     ),
+                    // --- AKHIR PERUBAHAN ---
                     const Divider(height: 30, thickness: 1),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -474,7 +495,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar dihilangkan untuk menaikkan konten
       body: SafeArea(
         child:
             _isLoading
@@ -499,7 +519,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     padding: const EdgeInsets.all(20),
                     children: [
                       _buildProfileCard(),
-                      const SizedBox(height: 24), // Spasi disesuaikan
+                      const SizedBox(height: 24),
                       Text(
                         'Pesanan Masuk',
                         style: Theme.of(
@@ -576,7 +596,6 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                 ),
-                // Tombol logout dipindahkan ke sini
                 IconButton(
                   icon: const Icon(Icons.logout_outlined),
                   color: Colors.grey[700],

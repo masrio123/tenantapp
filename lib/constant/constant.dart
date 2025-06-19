@@ -1,1 +1,2 @@
-const String baseURL = 'https://philippines-bt-lack-hart.trycloudflare.com/api';
+const String baseURL =
+    'https://beijing-scotia-knight-chem.trycloudflare.com/api';

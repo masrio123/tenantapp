@@ -3,7 +3,6 @@ class OrderNotification {
   final int id;
   final String customerName;
   final String orderStatus;
-  final String tenantLocationName;
   final String? porterName;
   final DateTime createdAt;
   final List<OrderItem> items;
@@ -12,7 +11,6 @@ class OrderNotification {
     required this.id,
     required this.customerName,
     required this.orderStatus,
-    required this.tenantLocationName,
     this.porterName,
     required this.createdAt,
     required this.items,
@@ -28,7 +26,6 @@ class OrderNotification {
       id: json['id'] ?? 0, // FIX: Memberi nilai default jika id null
       customerName: json['customer_name'] ?? 'No Name',
       orderStatus: json['order_status'] ?? 'Unknown',
-      tenantLocationName: json['tenant_location_name'] ?? 'No Location',
       porterName: json['porter_name'],
       // FIX: Pengecekan null sebelum parsing tanggal
       createdAt:
@@ -44,11 +41,13 @@ class OrderItem {
   final String productName;
   final int quantity;
   final int price;
+  final String notes;
 
   OrderItem({
     required this.productName,
     required this.quantity,
     required this.price,
+    required this.notes,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -65,6 +64,7 @@ class OrderItem {
     return OrderItem(
       productName: json['product_name'] ?? 'Nama produk tidak tersedia',
       quantity: json['quantity'] ?? 0,
+      notes: json['notes'],
       price: parsedPrice,
     );
   }
