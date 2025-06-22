@@ -41,18 +41,18 @@ class OrderItem {
   final String productName;
   final int quantity;
   final int price;
-  final String notes;
+  final String? notes;
 
   OrderItem({
     required this.productName,
     required this.quantity,
     required this.price,
-    required this.notes,
+    this.notes,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
-    // FIX: Pengecekan null yang sangat aman untuk harga
-    int parsedPrice = 0; // Default price adalah 0 jika data tidak valid
+    // Parsing harga sudah aman, bagus!
+    int parsedPrice = 0;
     if (json['price'] != null) {
       if (json['price'] is String) {
         parsedPrice = double.tryParse(json['price'])?.toInt() ?? 0;
@@ -64,6 +64,8 @@ class OrderItem {
     return OrderItem(
       productName: json['product_name'] ?? 'Nama produk tidak tersedia',
       quantity: json['quantity'] ?? 0,
+      // FIX: Berikan nilai default jika 'notes' null, atau biarkan null.
+      // Langsung seperti ini sudah aman karena field `notes` sudah nullable.
       notes: json['notes'],
       price: parsedPrice,
     );

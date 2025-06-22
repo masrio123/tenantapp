@@ -1,2 +1,2 @@
 const String baseURL =
-    'https://beijing-scotia-knight-chem.trycloudflare.com/api';
+    'https://tmp-quarterly-products-advantages.trycloudflare.com/api';
